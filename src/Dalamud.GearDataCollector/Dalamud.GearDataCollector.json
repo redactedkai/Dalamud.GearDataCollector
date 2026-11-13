@@ -1,0 +1,10 @@
+{
+  "Author": "redactedkai",
+  "Name": "Gear Data Collector",
+  "Punchline": "Record gear and stat changes to a local file.",
+  "Description": "Read-only research tool. Records your equipped gear and total stats to a local file while you swap gear in a duty. No network access.",
+  "RepoUrl": "https://github.com/redactedkai/Dalamud.GearDataCollector",
+  "Tags": ["gear", "sync", "research"],
+  "LoadRequiredState": 0,
+  "LoadSync": false
+}

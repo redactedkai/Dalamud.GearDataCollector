@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Tests for ChangeDetector, GearDiff, DutyFlagMemory, PieceDeriver and SessionNote. They need no game and no package: this program compiles the source
+    files below into itself (so their internal types are visible) and runs the cases in Program.cs.
+    Run it with "dotnet run" from this folder.
+    It is not in the .sln, so building the plugin does not build it.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\GameState\Items\SlotState.cs" Link="Linked\SlotState.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\GameState\Duty\DutyFlagMemory.cs" Link="Linked\DutyFlagMemory.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\GameState\Duty\DutyFlagRecord.cs" Link="Linked\DutyFlagRecord.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\GameState\Items\ItemRecord.cs" Link="Linked\ItemRecord.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\GameState\Items\MateriaRecord.cs" Link="Linked\MateriaRecord.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\GameState\Items\StatValue.cs" Link="Linked\StatValue.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\Session\Derivation\DerivedPiece.cs" Link="Linked\DerivedPiece.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\Session\Derivation\PieceDeriver.cs" Link="Linked\PieceDeriver.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\Session\SessionNote.cs" Link="Linked\SessionNote.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\Session\Tracking\ChangeDetector.cs" Link="Linked\ChangeDetector.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\Session\Tracking\ChangeEntry.cs" Link="Linked\ChangeEntry.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\Session\Tracking\GearDiff.cs" Link="Linked\GearDiff.cs" />
+    <Compile Include="..\..\src\Dalamud.GearDataCollector\Session\Lines\SessionItem.cs" Link="Linked\SessionItem.cs" />
+  </ItemGroup>
+
+</Project>
