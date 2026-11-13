@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gear Data Collector - window mockup</title>
+<style>
+  body { background: #1b1b1f; margin: 0; padding: 24px; font-family: Segoe UI, Arial, sans-serif; color: #ddd; }
+  p.note { max-width: 900px; font-size: 13px; color: #aaa; margin: 0 0 16px; }
+  /* --f is the game's font size in px (measured from the screenshots: 20). The game font is about 13.5% narrower than Segoe UI at the same
+     size, so the text is drawn at 0.865 of --f to get the same widths. Every size below is a multiple of --f, as in the plugin.
+     --label and --first are measured by the script at the bottom, like the plugin does with CalcTextSize. */
+  .win { --f: 20px; --label: 190px; --first: 150px; font-size: calc(var(--f) * 0.865); line-height: var(--f); width: fit-content; min-width: calc(var(--f) * 46); background: #0f0f10; border: 1px solid #4a4a52; border-radius: 4px; box-shadow: 0 6px 24px #000a; }
+  .title { display: flex; justify-content: space-between; background: #2b4a7a; padding: 3px 8px; line-height: calc(var(--f) + 4px); color: #fff; cursor: pointer; user-select: none; }
+  .title .tb { letter-spacing: .3em; }
+  .body { padding: 8px; }
+  .tabs { display: flex; gap: 2px; border-bottom: 1px solid #3c3c44; margin-bottom: 4px; }
+  .tab { padding: 2px 8px; background: #1d2a42; border: 1px solid #3c3c44; border-bottom: 0; border-radius: 3px 3px 0 0; cursor: pointer; color: #bbb; }
+  .tab.active { background: #35507a; color: #fff; }
+  .row { margin: 0 0 4px; }
+  .label { margin: 0 0 4px; }
+  .btn { display: inline-block; background: #35507a; border: 1px solid #4a6aa0; padding: 1px 8px; border-radius: 3px; margin-right: 4px; color: #fff; cursor: pointer; font: inherit; line-height: var(--f); }
+  .btn[disabled] { opacity: .4; cursor: default; }
+  .btn.stop { background: #7a3535; border-color: #a04a4a; }
+  .input { display: inline-block; background: #232327; border: 1px solid #3c3c44; padding: 1px 8px; border-radius: 3px; color: #fff; font: inherit; line-height: var(--f); box-sizing: border-box; vertical-align: middle; }
+  .input[disabled] { opacity: .4; }
+  .muted { color: #8a8a93; margin: 0 0 4px; }
+  .warn { color: #ffd94d; }
+  .status { margin: 0 0 4px; max-width: calc(var(--f) * 44); overflow-wrap: anywhere; white-space: pre-wrap; }
+  h4 { margin: 8px 0 4px; font-weight: normal; font-size: inherit; color: #8cbfff; border-bottom: 1px solid #3c3c44; padding-bottom: 4px; }
+  table { border-collapse: collapse; font-size: inherit; width: auto; }
+  td, th { padding: 1px 0 1px calc(var(--f) * 1.6); text-align: left; font-weight: normal; white-space: nowrap; }
+  td:first-child, th:first-child { padding-left: 0; }
+  td.l { color: #8a8a93; width: calc(var(--label) + var(--f) * 0.8); }
+  table.pairs:not(.stats) td:nth-child(2) { width: calc(var(--first) + var(--f) * 0.8); }
+  table.stats td.n { text-align: right; }
+  table.stats td.n:not(.last) { padding-right: calc(var(--f) * 0.8); }
+  .finder-wrap { position: relative; }
+  .finder-wrap::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: calc(var(--f) + 2px); background: #2d2d30; }
+  table.finder { position: relative; }
+  table.finder td:first-child, table.finder th:first-child { width: calc(var(--label) + var(--f) * 0.8); }
+  table.finder td:first-child { color: #8a8a93; }
+  table.finder th:nth-child(2), table.finder td:nth-child(2) { width: calc(var(--f) * 4); }
+  .caption { max-width: 900px; font-size: 12px; color: #888; margin-top: 10px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<p class="note">Clickable mockup of the window (<code>Interface/MainWindow.cs</code> and <code>Interface/DutyInfoView.cs</code>). Click the title bar arrow to collapse the window. On the Duty / Gear Info tab press Start session: the Note box greys out while the session runs and clears when you press Stop, and the status shows the session status, the session path and the derived gear path. The duty info is a set of sections with a table of every total stat and a table of the Duty Finder settings. Untick "Enable data collection" on the Config tab to see the disabled state. Values are from a Dusk Vigil Min IL session. The window fits its content, as in game. Sizes are multiples of the game font size (20 px, measured from a screenshot) and the text is scaled to the width of the game font, so the layout should be within a few percent of the game; the letter shapes and the colours still differ.</p>
+
+<div class="win">
+  <div class="title" onclick="toggleCollapse()"><span>Gear Data Collector v0.1.0.0<span id="title-wait"></span></span><span class="tb">&#9776;<span id="arrow">&#9660;</span>&#10005;</span></div>
+  <div class="body" id="body">
+    <div class="tabs">
+      <div class="tab active" id="tab-config" onclick="show('config')">Config</div>
+      <div class="tab" id="tab-info" onclick="show('info')">Duty / Gear Info</div>
+    </div>
+
+    <!-- Config tab -->
+    <div id="page-config">
+      <div class="label">Save directory</div>
+      <div class="row"><input class="input" style="width:calc(var(--f) * 30)" value=""> <span class="btn">Browse...</span></div>
+      <div class="muted">Empty: using the snapshots folder next to the plugin DLL</div>
+      <div class="row"><label><input type="checkbox" id="mode" checked onchange="setMode()"> Enable data collection</label></div>
+    </div>
+
+    <!-- Duty / Gear Info tab -->
+    <div id="page-info" class="hidden">
+      <div class="muted hidden" id="disabledmsg">Collection is disabled. Tick Enable data collection in the Config tab.</div>
+      <div class="row">Session note <input class="input" style="width:calc(var(--f) * 35)" id="note" value=""> <button class="btn" id="b-session" onclick="toggleSession()">Start session</button></div>
+      <div class="row warn">Remove food and other stat buffs first: they add to your stats and spoil the per-piece numbers.</div>
+      <div class="muted">Instructions: Add or remove one piece at a time. The weapon and Soul Crystal can't be removed.</div>
+      <div class="status hidden" id="status"></div>
+      <hr style="border:0;border-top:1px solid #3c3c44;margin:4px 0">
+
+      <h4>Duty</h4>
+      <table class="pairs">
+        <tr><td class="l">Duty</td><td>the Dusk Vigil</td><td class="l">Territory</td><td>1366</td></tr>
+        <tr><td class="l">Duty ID</td><td>36</td><td class="l">Minimum IL allowed</td><td>yes</td></tr>
+        <tr><td class="l">Level required</td><td>51</td><td class="l">Level sync</td><td>52</td></tr>
+        <tr><td class="l">Item level required</td><td>100</td><td class="l">Item level sync</td><td>0</td></tr>
+        <tr><td class="l">Fixed item level sync</td><td>no</td></tr>
+      </table>
+
+      <h4>Player</h4>
+      <table class="pairs">
+        <tr><td class="l">Job</td><td>SGE (id 40)</td><td class="l">Level</td><td>100</td></tr>
+        <tr><td class="l">Synced to</td><td>51</td><td class="l">Average item level</td><td>770</td></tr>
+        <tr><td class="l">Minimum IL used</td><td>on (atEntry)</td><td class="l">Clan</td><td>Seeker of the Sun (tribe 3)</td></tr>
+      </table>
+
+      <h4>Total stats</h4>
+      <table class="pairs stats">
+        <tr><td class="l">Vitality</td><td class="n">447</td><td class="l">Critical Hit</td><td class="n">605</td><td class="l">Auto-attack Delay</td><td class="n last">2800</td></tr>
+        <tr><td class="l">Strength</td><td class="n">124</td><td class="l">Determination</td><td class="n">390</td><td class="l">Attack Power</td><td class="n last">124</td></tr>
+        <tr><td class="l">Dexterity</td><td class="n">207</td><td class="l">Direct Hit Rate</td><td class="n">342</td><td class="l">Attack Magic Potency</td><td class="n last">498</td></tr>
+        <tr><td class="l">Intelligence</td><td class="n">233</td><td class="l">Piety</td><td class="n">281</td><td class="l">Healing Magic Potency</td><td class="n last">498</td></tr>
+        <tr><td class="l">Mind</td><td class="n">498</td><td class="l">Skill Speed</td><td class="n">342</td><td class="l">Defense</td><td class="n last">306</td></tr>
+        <tr><td class="l">Tenacity</td><td class="n">342</td><td class="l">Spell Speed</td><td class="n">392</td><td class="l">Magic Defense</td><td class="n last">534</td></tr>
+        <tr><td class="l">Haste</td><td class="n">100</td><td class="l">Evasion</td><td class="n">342</td></tr>
+      </table>
+
+      <h4>Duty Finder</h4>
+      <div class="finder-wrap"><table class="finder">
+        <tr><th>Setting</th><th>Now</th><th>Popped queue</th></tr>
+        <tr><td>Unrestricted party</td><td>yes</td><td>yes</td></tr>
+        <tr><td>Minimum IL</td><td>yes</td><td>yes</td></tr>
+        <tr><td>Level sync</td><td>yes</td><td>yes</td></tr>
+        <tr><td>Silence Echo</td><td>no</td><td>no</td></tr>
+      </table></div>
+
+      <div class="muted row" style="margin-top:6px">Plugin 0.1.0.0, game 2026.11.03.0000.0000, game started 2026-11-12 14:32:21 UTC</div>
+    </div>
+  </div>
+</div>
+<p class="note"><button class="btn" id="b-simulate" onclick="simulateChange()" disabled>Simulate a gear change</button> Prototype control, not part of the plugin: with a session running it adds "waiting..." to the title bar for 1 second, as the plugin does after a change. It also shows when the window is collapsed.</p>
+<div class="caption">Not shown: "Please log in before using this plugin." (before login) and the Browse... folder dialog (Dalamud's built-in one). The duty info updates about once a second.</div>
+
+<script>
+  var folder = '[save-directory]\\';
+  var file = 'session-20261112-144128Z-territory1366-7aa7f5d81193ed3f';
+  var running = false;
+  function show(name) {
+    document.getElementById('page-config').classList.toggle('hidden', name !== 'config');
+    document.getElementById('page-info').classList.toggle('hidden', name !== 'info');
+    document.getElementById('tab-config').classList.toggle('active', name === 'config');
+    document.getElementById('tab-info').classList.toggle('active', name === 'info');
+  }
+  function setMode() {
+    var off = !document.getElementById('mode').checked;
+    document.getElementById('disabledmsg').classList.toggle('hidden', !off);
+    document.getElementById('b-session').disabled = off;
+  }
+  function toggleCollapse() {
+    var body = document.getElementById('body');
+    var collapsed = !body.classList.contains('hidden');
+    body.classList.toggle('hidden', collapsed);
+    document.getElementById('arrow').innerHTML = collapsed ? '&#9654;' : '&#9660;';
+  }
+  var dotTimer = null;
+  function simulateChange() {
+    if (!running || dotTimer) { return; }
+    var wait = document.getElementById('title-wait');
+    var step = 0;
+    wait.textContent = ' - waiting.';
+    dotTimer = setInterval(function () {
+      step++;
+      wait.textContent = ' - waiting' + '...'.slice(0, 1 + (step % 3));
+    }, 333);
+    setTimeout(function () {
+      clearInterval(dotTimer);
+      dotTimer = null;
+      wait.textContent = '';
+    }, 1000);
+  }
+  function toggleSession() {
+    running = !running;
+    document.getElementById('b-simulate').disabled = !running;
+    var btn = document.getElementById('b-session');
+    var note = document.getElementById('note');
+    var status = document.getElementById('status');
+    btn.textContent = running ? 'Stop session' : 'Start session';
+    btn.classList.toggle('stop', running);
+    if (running && !note.value.trim()) { note.value = 'the Dusk Vigil - Min IL'; }
+    note.disabled = running;
+    status.classList.remove('hidden');
+    if (running) {
+      status.textContent = 'Session status: running (0 changes)\nSession path: ' + folder + file + '.jsonl';
+    } else {
+      note.value = '';
+      status.textContent = 'Session status: Stopped (10 changes)\nSession path: ' + folder + file + '.jsonl\nDerived gear path: ' + folder + file + '.pieces.json';
+    }
+  }
+  var win = document.querySelector('.win');
+  function textWidth(text) {
+    var span = document.createElement('span');
+    span.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap';
+    span.textContent = text;
+    win.appendChild(span);
+    var width = span.getBoundingClientRect().width;
+    span.remove();
+    return width;
+  }
+  function layout() {
+    var label = 0;
+    var first = 0;
+    document.querySelectorAll('td.l, table.finder td:first-child').forEach(function (td) {
+      label = Math.max(label, textWidth(td.textContent));
+    });
+    document.querySelectorAll('table.pairs:not(.stats) tr').forEach(function (tr) {
+      first = Math.max(first, textWidth(tr.cells[1].textContent));
+    });
+    win.style.setProperty('--label', label + 'px');
+    win.style.setProperty('--first', first + 'px');
+  }
+  setMode();
+  layout();
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(layout); }
+</script>
+</body>
+</html>
