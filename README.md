@@ -21,11 +21,29 @@ The plugin also keeps a small temporary file, `duty-flag.json`, so it remembers 
 
 ## Building
 
-Set `DALAMUD_HOME` to your Dalamud hooks folder, then run this from the repo root:
+### Requirements
 
+- [.NET 10 SDK](https://dot.net/download). The project targets `net10.0-windows` to match Dalamud 15.x.
+- [XIVLauncher](https://goatcorp.github.io/) with Dalamud installed. The build references assemblies from `%APPDATA%\XIVLauncher\addon\Hooks\dev\`. If Dalamud is installed elsewhere (for example on another drive), set the `DALAMUD_HOME` environment variable to that `Hooks\dev` folder before building.
+
+### Build
+
+```bash
+git clone https://github.com/redactedkai/Dalamud.GearDataCollector.git
+cd Dalamud.GearDataCollector
+dotnet build Dalamud.GearDataCollector.sln -c Release
 ```
-dotnet build -c Release
-```
+
+Output: `src\Dalamud.GearDataCollector\bin\x64\Release\Dalamud.GearDataCollector.dll`
+
+### Loading as a dev plugin
+
+1. Launch FFXIV through XIVLauncher.
+2. In game, type `/xldev`, open **Dev Plugin Locations** and **Add** this folder:
+   ```
+   <path-to-repo>\src\Dalamud.GearDataCollector\bin\x64\Release
+   ```
+3. Click **Load**. After a rebuild, click **Reload** to load the new build without restarting the game.
 
 ### Running the tests
 
